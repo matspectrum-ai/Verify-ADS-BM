@@ -1,7 +1,7 @@
-# Verify ADS BM
+# Verify-ADS
 
-High-fidelity reconstruction of the observable behavior of `score-scanner-7q2s.vercel.app`.
+Reconstruction project for the target application. This repository is being rebuilt from observed behavior, UI, flows, and contracts.
 
-The target application is the behavioral source of truth. Work follows: Observe → Inventory → Specify → Implement → Verify → Diff → Iterate.
+## Engineering rule
 
-Current focus: authenticated parity for `/minha-area`, followed by `/minha-conta`, `/admin` and `/minerar`.
+Observed behavior is treated as the source of truth. Unobserved behavior is documented as unknown rather than invented.

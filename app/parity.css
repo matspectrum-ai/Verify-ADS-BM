@@ -1,0 +1,50 @@
+/* Evidence-backed parity overrides. Keep these values tied to captured target behavior. */
+
+@media (max-width: 639px) {
+  .hero-section {
+    padding: 80px 16px 64px;
+  }
+
+  .hero-pill {
+    margin-bottom: 32px;
+  }
+
+  .hero-section h1 {
+    font-size: 48px;
+    line-height: 1.03;
+    margin-bottom: 24px;
+  }
+
+  .hero-section > p {
+    margin-bottom: 40px;
+    font-size: 18px;
+    line-height: 1.625;
+  }
+
+  .hero-actions {
+    gap: 16px;
+  }
+
+  .primary-cta,
+  .secondary-cta {
+    width: auto;
+  }
+}
+
+.area-button > span[aria-hidden="true"] {
+  width: 14px;
+  height: 14px;
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 14px;
+  line-height: 1;
+}
+
+.primary-cta > span[aria-hidden="true"] {
+  width: 20px;
+  height: 20px;
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 20px;
+  line-height: 1;
+}
