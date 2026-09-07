@@ -35,8 +35,8 @@ test.describe("observed account surface", () => {
 
   test("preserves observed password validation messages", async ({ page }) => {
     await page.goto("/minha-conta");
-    await page.getByLabel("Nova senha").fill("123456");
-    await page.getByLabel("Confirmar nova senha").fill("654321");
+    await page.getByLabel("Nova senha", { exact: true }).fill("123456");
+    await page.getByLabel("Confirmar nova senha", { exact: true }).fill("654321");
     await page.getByRole("button", { name: /Alterar Senha/ }).click();
     await expect(page.getByRole("status")).toHaveText("As senhas não coincidem");
   });
