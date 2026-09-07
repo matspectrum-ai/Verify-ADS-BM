@@ -30,14 +30,18 @@ Target: `https://score-scanner-7q2s.vercel.app/`
 7. Footer.
 
 ## Authenticated application
-Status: UNKNOWN.
+Status: PARTIALLY OBSERVED.
+
+`/minha-area` was captured from an authenticated Firefox session on 2026-09-07. The observed empty-account dashboard includes four summary metrics, tabs for saved companies and White Label domains, an empty company state with an `Ir para Mineração` CTA, and a global account menu.
+
+Observed account-menu labels: `Minerar CNPJs`, `Minha Área`, `Minha Conta`, `Manual / Ajuda`, `Sair`. Destination URLs other than `/minha-area` remain UNKNOWN until directly captured.
 
 Credentials were supplied out-of-band in the conversation for a test account. They are intentionally not stored in the repository, documentation, workflow YAML, artifacts or logs.
 
 ## Next discovery targets
 1. Capture and reconstruct `/cadastro`.
 2. Produce scroll-revealed desktop/mobile homepage screenshots and visual-diff the replica.
-3. Securely execute authenticated discovery using repository secrets or another non-public credential channel.
-4. Capture post-login default route and full navigation tree.
+3. Continue authenticated discovery from the already authenticated local browser session.
+4. Capture exact destination routes and complete states for the account menu and mining workflow.
 5. Capture API requests/responses for auth/session and each domain/DNS workflow.
 6. Build route coverage and state matrices before implementing authenticated behavior.
