@@ -7,7 +7,7 @@ test.describe("authenticated dashboard surface", () => {
     await expect(page.getByRole("heading", { name: "Minha Área" })).toBeVisible();
     await expect(page.getByText("Gerencie suas empresas e domínios verificados")).toBeVisible();
     await expect(page.getByText("Total de Domínios")).toBeVisible();
-    await expect(page.getByText("Domínios Verificados")).toBeVisible();
+    await expect(page.getByText("Domínios Verificados", { exact: true })).toBeVisible();
     await expect(page.getByText("Landing Pages Ativas")).toBeVisible();
     await expect(page.getByText("Novos este Mês")).toBeVisible();
     await expect(page.getByRole("heading", { name: /Minhas Empresas Ativas/ })).toBeVisible();
