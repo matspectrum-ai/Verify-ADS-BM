@@ -1,57 +1,73 @@
 # Evidence Ledger
 
-This file separates verified target behavior from unknowns and implementation choices.
+This ledger separates target evidence from implementation choices. Credentials, cookies, auth state, private screenshots and captured personal data are never committed.
 
 ## E-001 Public homepage
-- Status: OBSERVED
-- URL: `/`
-- HTTP: 200 on desktop and mobile capture.
-- Evidence captured: full DOM, body text, CSS rules, computed-style samples, request inventory, desktop screenshot at 1440x1000 and mobile screenshot at 390x844.
-- Visual facts: dark `#070711` base, 40px dot grid, animated blue/purple/indigo/cyan ambient orbs, sticky translucent navigation, Inter body font, Poppins display font, gradient hero accent, six colored benefit cards, four metrics, three-step flow and three pricing cards.
-- Note: initial full-page capture occurred before scroll-triggered animations revealed lower sections. The capture harness now scrolls the page before the screenshot so the next artifact can be used as the full visual baseline.
+- Status: OBSERVED.
+- URL: `/`.
+- Captured at desktop and mobile viewports with DOM/style/request inventory.
+- Visual system: dark `#070711` base, dot grid, animated ambient blue/purple/indigo/cyan orbs, translucent navigation, Inter body font and Poppins display font.
 
-## E-002 Login route
-- Status: OBSERVED (public UI)
-- URL: `/login`
-- HTTP: 200 on desktop and mobile capture.
-- Observed controls:
-  - email input, type `email`, placeholder `seu@email.com`
-  - password input, type `password`, placeholder `••••••••`
-  - submit button `Entrar na Minha Conta`
-  - `/cadastro` link `Criar conta grátis`
-  - `/` link `← Voltar ao início`
-- Observed visual composition: same dark ambient/grid background; centered VerifyAds mark; translucent 448px max-width glass card; gradient primary button.
-- Authentication success/failure/API behavior: UNKNOWN until authenticated discovery is executed securely.
+## E-002 Login
+- Status: OBSERVED UI.
+- URL: `/login`.
+- Inputs: email `seu@email.com`; password `••••••••`.
+- Submit: `Entrar na Minha Conta`.
+- Links: `/cadastro` and `/`.
+- Auth success/failure/session contracts are not yet promoted to complete.
 
-## E-003 Signup route
-- Status: OBSERVED route existence / CAPTURE PENDING
-- URL: `/cadastro`
-- Discovered from the login page and all three pricing CTAs.
-- Public capture was added to the CI evidence harness and will be promoted to OBSERVED UI after artifact inspection.
+## E-003 Signup
+- Status: ROUTE OBSERVED; parity review pending.
+- URL: `/cadastro`.
 
-## E-004 Privacy route
-- Status: OBSERVED
-- URL: `/l/privacidade`
-- HTTP: 200.
-- Exact text, headings and layout captured.
-- Layout: slate-50 page, centered white max-w-3xl card, green lock icon, 30px heading, 9/2/2026 update date and home backlink.
+## E-004 Privacy
+- Status: OBSERVED.
+- URL: `/l/privacidade`.
+- Exact content/layout captured in the public evidence harness.
 
-## E-005 Terms route
-- Status: OBSERVED
-- URL: `/l/termos`
-- HTTP: 200.
-- Exact text, headings and layout captured.
-- Layout: same legal-page shell, blue shield-alert icon, 30px heading, 9/2/2026 update date and home backlink.
+## E-005 Terms
+- Status: OBSERVED.
+- URL: `/l/termos`.
+- Exact content/layout captured in the public evidence harness.
 
-## E-006 Authenticated product
-- Status: BLOCKED
-- Reason: the local browser runtime cannot resolve/navigate outbound to the target. GitHub Actions can browse the target, but the repository is public and credentials must not be committed or passed as visible workflow inputs.
-- Required next evidence: authenticated route tree, session behavior, domain CRUD, DNS workflow, landing-page workflow, billing/account states and network contracts.
-- Rule: none of those behaviors will be fabricated while blocked.
+## E-006 Authenticated session
+- Status: OBSERVED.
+- An already-authenticated Firefox session reached `/minha-area` without persisting credentials in this repository.
+- Read-only browser/cache inspection exposed the account navigation tree and route-specific Next.js bundles.
+- Private captures remain under ignored local evidence directories.
 
 ## E-007 Target technology surface
-- Status: OBSERVED externally
-- The target serves Next.js App Router assets under `/_next/static/chunks/`.
-- The target stylesheet exposes Tailwind-generated utilities plus custom animation rules.
-- Google Fonts request observed for Inter 400/500/600/700/800 and Poppins 600/700/800/900.
-- These are observations about delivered assets, not claims about unavailable source code or backend internals.
+- Status: OBSERVED externally.
+- Next.js App Router assets are delivered under `/_next/static/chunks/`.
+- Styles include Tailwind-generated utilities plus custom animation rules.
+- Google Fonts requests include Inter 400/500/600/700/800 and Poppins 600/700/800/900.
+
+## E-008 `/minha-area`
+- Status: OBSERVED.
+- Header: `PAINEL DE CONTROLE`, `Minha Área`, `Gerencie suas empresas e domínios verificados`.
+- Metrics: Total de Domínios, Domínios Verificados, Landing Pages Ativas, Novos este Mês.
+- Tabs: Minhas Empresas Ativas; Domínios Próprios (White Label).
+- Empty companies and empty domains states captured.
+- APIs observed: domain stats/list/add/delete/verify-dns and companies list/delete.
+- Replica surface has passing E2E coverage for the captured empty states and account-menu destinations.
+
+## E-009 `/minerar`
+- Status: OBSERVED UI + delivered-bundle behavior.
+- Product mark includes `V91`; subtitle `Empresas reais. Anúncios seguros`.
+- First-use guide uses `verifyads_welcome_seen` and appears after about 800ms when unseen.
+- Mining target is 20 companies; running state exposes tried/found/target/percentage/isComplete.
+- APIs observed: `/api/cnpj` and `/api/cnpj/check-usage`.
+- Candidate rules observed: active company, trust score >= 65, capital ceiling.
+- Replica currently implements observed UI states only. Its timer is an IMPLEMENTATION scaffold, not target parity.
+
+## E-010 `/minha-conta` and plans
+- Status: PARTIALLY OBSERVED.
+- Delivered bundle references subscription/account UI and `/api/billing/create-payment`.
+- Public plan data observed: Starter (4 domains, 100/month), Professional (10 domains, 150/month, featured), Enterprise (20 domains, 250/month).
+- Subscription state for the authenticated account was not captured.
+- Payment QR payload, payment state machine and email/password mutations are UNKNOWN. Any placeholder behavior for those is prohibited.
+
+## E-011 Dossier/domain onboarding
+- Status: PARTIALLY OBSERVED from delivered bundle.
+- Bundle references `/api/cnpj`, `/api/domain/list`, `/api/domain/save-with-company`, `/minha-area?tab=domains` and the account navigation routes.
+- Full dossier route, field matrix, generated assets, save flow, DNS states and error states remain pending.

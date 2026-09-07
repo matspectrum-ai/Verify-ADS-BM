@@ -1,42 +1,53 @@
 # Reconstruction Plan
 
 ## M0 — Evidence and harness
-- [x] Initialize repository.
-- [x] Establish evidence ledger.
-- [x] Establish system map.
-- [x] Establish repository rules.
-- [ ] Capture authenticated route tree.
-- [ ] Capture target screenshots at desktop/mobile viewports.
-- [ ] Capture target network contracts.
+- [x] Initialize repository rules and evidence ledger.
+- [x] Capture public route/DOM/style baseline.
+- [x] Obtain safe evidence from an authenticated browser session.
+- [x] Discover authenticated top-level navigation and route bundles.
+- [ ] Complete authenticated route/state matrix.
+- [ ] Complete network-contract capture for every workflow.
 
 ## M1 — Public surface
-- [ ] Implement `/` semantic baseline.
-- [ ] Implement exact visual parity after screenshot capture.
-- [ ] Capture/implement `/login`.
-- [ ] Capture/implement `/l/privacidade`.
-- [ ] Capture/implement `/l/termos`.
+- [x] Implement `/`, `/login`, privacy and terms baselines.
+- [x] Implement `/cadastro` baseline.
+- [ ] Finish desktop/mobile visual-diff parity gate.
+- [ ] Verify public form error/success states.
 
 ## M2 — Auth/session
-- [ ] Reproduce login success/failure behavior.
-- [ ] Reproduce session persistence/logout/guards.
-- [ ] Add contract and E2E tests.
+- [ ] Reproduce login success/failure contract.
+- [ ] Reproduce session persistence and route guards.
+- [ ] Reproduce logout.
+- [ ] Add contract + E2E coverage.
 
-## M3 — Authenticated application
-Build route-by-route from the captured navigation tree. No route is marked complete without success, error, loading, empty and permission states where applicable.
+## M3 — Authenticated shell
+- [x] `/minha-area` captured empty states and navigation surface.
+- [x] `/minerar` captured initial, onboarding and running surfaces.
+- [ ] `/minha-conta` visual/state capture and implementation.
+- [ ] `/dashboard/docs`.
+- [ ] Conditional `/admin` surface if accessible to the authorized account.
 
-## M4 — Domain/DNS workflows
-- Domain lifecycle.
-- DNS instructions.
-- Verification behavior.
-- Generated landing pages.
-- Relevant API contracts.
+## M4 — Mining and dossier
+- [ ] Replace mining timer scaffold with observed API/cache loop.
+- [ ] Reproduce result cards and dossier navigation.
+- [ ] Reproduce dossier fields, save-company flow and all error/loading/empty states.
 
-## M5 — Billing and account
-Capture and reproduce only observed behavior.
+## M5 — Domain / DNS / landing pages
+- [ ] Company/domain list state.
+- [ ] Add/delete domain contracts.
+- [ ] DNS verification pending/success/error states.
+- [ ] Save-with-company flow.
+- [ ] Landing-page generation and observable output contracts.
 
-## M6 — Parity gate
-- Route coverage matrix.
-- E2E coverage.
-- Contract tests.
-- Visual regression at agreed viewports.
-- Open unknowns must be zero or explicitly accepted.
+## M6 — Billing/account
+- [x] Capture public plan catalog.
+- [ ] Capture authenticated subscription state variants.
+- [ ] Capture payment creation contract without executing an unintended real payment.
+- [ ] Capture email/password mutation contracts before implementing them.
+
+## M7 — Parity gate
+- [ ] Route coverage matrix has no unexplained gaps.
+- [ ] Contract/E2E suite covers success, failure, loading, empty and permission states where applicable.
+- [ ] Visual regression passes at matched desktop/mobile viewports.
+- [ ] No credentials, cookies, auth state or personal target evidence is present in Git history.
+- [ ] No UNKNOWN is represented as implemented target behavior.
