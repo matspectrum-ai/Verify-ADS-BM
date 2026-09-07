@@ -1,6 +1,6 @@
 # System Map
 
-Status: discovery in progress.
+Status: authenticated discovery in progress.
 Target: `https://score-scanner-7q2s.vercel.app/`
 
 ## Public route inventory
@@ -9,39 +9,73 @@ Target: `https://score-scanner-7q2s.vercel.app/`
 | --- | --- | --- |
 | `/` | OBSERVED | Implemented from captured DOM/style evidence; visual diff still pending. |
 | `/login` | OBSERVED UI | Implemented UI; real auth behavior intentionally not fabricated. |
-| `/cadastro` | ROUTE OBSERVED, UI CAPTURE PENDING | Not implemented until current CI capture is inspected. |
+| `/cadastro` | OBSERVED | Baseline implementation present. |
 | `/l/privacidade` | OBSERVED | Implemented from captured content/layout. |
 | `/l/termos` | OBSERVED | Implemented from captured content/layout. |
 
-## Public navigation contracts
-- Header: `Benefícios -> #beneficios`, `Como Funciona -> #como-funciona`, `Planos -> #planos`, `Minha Área -> /login`.
-- Hero: `Acessar Minha Área -> /login`, `Ver Benefícios -> #beneficios`.
-- Pricing: Starter, Business and Agency CTAs all point to `/cadastro`.
-- Footer: Privacidade, Termos, Login.
-- Login: signup link -> `/cadastro`; back link -> `/`.
+## Authenticated route inventory
 
-## Public homepage sections
-1. Sticky navigation / VerifyAds mark.
-2. Hero.
-3. Benefits (`#beneficios`).
-4. Metrics strip.
-5. Three-step process (`#como-funciona`).
-6. Pricing (`#planos`).
-7. Footer.
+| Route | Evidence status | Replica status |
+| --- | --- | --- |
+| `/minha-area` | OBSERVED AUTHENTICATED | Empty-company/White Label dashboard reconstructed and covered by E2E. |
+| `/minerar` | BUNDLE + AUTHENTICATED EVIDENCE | Local reconstruction exists; integration to GitHub pending device reconnection. |
+| `/minha-conta` | BUNDLE + PUBLIC BACKEND EVIDENCE | Account baseline, plans, security forms and PIX loading modal reconstructed on `reconstruction/account-parity`. |
+| `/dashboard/docs` | ROUTE + COPY REFERENCES OBSERVED | Full content capture still pending. |
+| `/admin` | CONDITIONAL ROUTE OBSERVED | Only exposed when `isAdmin`; UI not yet captured. |
 
-## Authenticated application
-Status: PARTIALLY OBSERVED.
+## Authenticated account menu
 
-`/minha-area` was captured from an authenticated Firefox session on 2026-09-07. The observed empty-account dashboard includes four summary metrics, tabs for saved companies and White Label domains, an empty company state with an `Ir para Mineração` CTA, and a global account menu.
+Observed destinations:
 
-Observed account-menu labels: `Minerar CNPJs`, `Minha Área`, `Minha Conta`, `Manual / Ajuda`, `Sair`. Destination URLs other than `/minha-area` remain UNKNOWN until directly captured.
+- `Minerar CNPJs` → `/minerar`
+- `Minha Área` → `/minha-area`
+- `Minha Conta` → `/minha-conta`
+- `Manual / Ajuda` → `/dashboard/docs`
+- `Painel Admin` → `/admin` only for admin users
+- `Sair` → clears local/session browser state, calls `/api/auth/logout`, then redirects to `/login`
 
-Credentials were supplied out-of-band in the conversation for a test account. They are intentionally not stored in the repository, documentation, workflow YAML, artifacts or logs.
+## Mining contract
+
+Observed baseline filter is fixed in the current target bundle:
+
+- target: 20 active companies
+- maximum capital: R$ 20.000
+- primary action: `🔄 MINERAR DADOS REAIS`
+- running state: `MINERANDO...`, progress count and stop action
+- first-use onboarding key: `verifyads_welcome_seen`
+
+Observed APIs include `/api/cnpj?cnpj=...` and `/api/cnpj/check-usage?cnpj=...`. The target also maintains local whitelist/blacklist/used CNPJ caches and synchronizes corresponding data with Supabase.
+
+## Account and billing contract
+
+Current public plan snapshot from the same Supabase backend used by the target:
+
+- Starter — R$ 100/mês — 4 domains
+- Professional — R$ 150/mês — 10 domains — featured/POPULAR
+- Enterprise — R$ 250/mês — 20 domains
+
+Observed subscription states: `active`, `trialing`, `unpaid`, or no matching subscription. The specific authenticated account state was not recoverable and remains `UNKNOWN`.
+
+Observed billing entry point: `POST /api/billing/create-payment`. PIX modal states include loading, PIX/manual payment details, success and error. Subscription status is polled while awaiting confirmation.
+
+## Company/domain contracts observed in private bundles
+
+- `/api/companies/list`
+- `/api/companies/delete`
+- `/api/domain/list`
+- `/api/billing/create-payment`
+
+Additional request/response schemas remain subject to direct capture; endpoint names alone are not treated as proof of full semantics.
+
+## Evidence discipline
+
+Credentials supplied for the test account are intentionally not stored in repository files, workflow YAML, test artifacts or documentation. Unknown account-specific values are not synthesized.
 
 ## Next discovery targets
-1. Capture and reconstruct `/cadastro`.
-2. Produce scroll-revealed desktop/mobile homepage screenshots and visual-diff the replica.
-3. Continue authenticated discovery from the already authenticated local browser session.
-4. Capture exact destination routes and complete states for the account menu and mining workflow.
-5. Capture API requests/responses for auth/session and each domain/DNS workflow.
-6. Build route coverage and state matrices before implementing authenticated behavior.
+
+1. Reconnect the Fedora device and integrate the newer local `/minerar` implementation with the GitHub account branch.
+2. Capture `/dashboard/docs` completely, including responsive states and navigation.
+3. Capture `/admin` only if the supplied test account legitimately exposes it.
+4. Capture request/response schemas for company save/delete, domain/DNS verification, CNPJ lookup/usage and billing.
+5. Replace deterministic UI baselines with real auth/data adapters only after contracts are verified.
+6. Run screenshot diffs for authenticated desktop and mobile states before declaring parity.

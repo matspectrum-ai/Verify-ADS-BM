@@ -95,7 +95,7 @@ function CompanyEmptyState() {
       <div className="empty-icon"><Icon name="globe" /><span>×</span></div>
       <h3>Nenhuma empresa salva</h3>
       <p>Minere um CNPJ, abra o Dossiê Empresarial e clique em Salvar para adicionar uma empresa aqui.</p>
-      <button type="button" className="dashboard-secondary-button"><span>＋</span> Ir para Mineração</button>
+      <a href="/minerar" className="dashboard-secondary-button"><span>＋</span> Ir para Mineração</a>
       <div className="quick-tip">
         <span className="quick-tip-label">💡 Dica Rápida</span>
         <p>Busque por um CNPJ na Score-Scanner e abra o Dossiê Empresarial para salvar empresas na sua área.</p>
@@ -115,18 +115,25 @@ function DomainEmptyState() {
 }
 
 function ProfileMenu() {
+  async function logout() {
+    localStorage.clear();
+    sessionStorage.clear();
+    try { await fetch("/api/auth/logout", { method: "POST" }); } catch { /* redirect regardless */ }
+    window.location.href = "/login";
+  }
+
   return (
     <div className="profile-menu" role="menu">
       <div className="profile-menu-head">
         <strong>usuário</strong>
         <span>conta autenticada</span>
       </div>
-      <button type="button" role="menuitem"><Icon name="mine" /> Minerar CNPJs</button>
-      <button type="button" role="menuitem"><Icon name="grid" /> Minha Área</button>
-      <button type="button" role="menuitem"><Icon name="user" /> Minha Conta</button>
-      <button type="button" role="menuitem"><Icon name="book" /> Manual / Ajuda</button>
+      <a href="/minerar" role="menuitem"><Icon name="mine" /> Minerar CNPJs</a>
+      <a href="/minha-area" role="menuitem"><Icon name="grid" /> Minha Área</a>
+      <a href="/minha-conta" role="menuitem"><Icon name="user" /> Minha Conta</a>
+      <a href="/dashboard/docs" role="menuitem"><Icon name="book" /> Manual / Ajuda</a>
       <div className="profile-menu-separator" />
-      <button type="button" className="danger" role="menuitem"><Icon name="logout" /> Sair</button>
+      <button type="button" className="danger" role="menuitem" onClick={logout}><Icon name="logout" /> Sair</button>
     </div>
   );
 }

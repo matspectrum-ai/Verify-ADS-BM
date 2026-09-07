@@ -127,6 +127,7 @@
 
 .profile-menu-head strong { font-size: 13px; }
 .profile-menu-head span { color: #94a3b8; font-size: 11px; }
+.profile-menu a,
 .profile-menu button {
   width: 100%;
   display: flex;
@@ -137,10 +138,14 @@
   background: transparent;
   color: #cbd5e1;
   text-align: left;
+  text-decoration: none;
+  font: inherit;
   font-size: 13px;
   cursor: pointer;
 }
+.profile-menu a:hover,
 .profile-menu button:hover { background: rgba(255, 255, 255, .04); }
+.profile-menu a svg,
 .profile-menu button svg { width: 16px; height: 16px; }
 .profile-menu .danger { color: #fb7185; }
 .profile-menu-separator { height: 1px; margin: 4px 0; background: rgba(255, 255, 255, .06); }
@@ -287,6 +292,7 @@
   color: #e2e8f0;
   font-size: 13px;
   font-weight: 600;
+  text-decoration: none;
 }
 
 .dashboard-secondary-button > span { color: #38bdf8; font-size: 19px; }
