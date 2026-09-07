@@ -1,0 +1,36 @@
+.signupCard {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.signupLine {
+  left: 25%;
+  right: 25%;
+  background: linear-gradient(90deg, transparent, rgba(139, 92, 246, 0.58), transparent);
+}
+
+.passwordGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.submitButton {
+  background: linear-gradient(135deg, #6366f1, #8b5cf6) !important;
+  box-shadow: 0 8px 30px rgba(99, 102, 241, 0.3) !important;
+}
+
+.submitButton:hover {
+  box-shadow: 0 10px 34px rgba(99, 102, 241, 0.38) !important;
+}
+
+@media (max-width: 480px) {
+  .signupPage {
+    align-items: center !important;
+    padding: 16px !important;
+  }
+
+  .passwordGrid {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 12px;
+  }
+}

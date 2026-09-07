@@ -1,0 +1,29 @@
+name: Target Static Probe
+
+on:
+  push:
+    branches:
+      - reconstruction/**
+    paths:
+      - scripts/probe-target-static.mjs
+      - .github/workflows/target-static.yml
+  workflow_dispatch:
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Probe public bundles
+        run: node scripts/probe-target-static.mjs
+
+      - name: Upload contract hints
+        uses: actions/upload-artifact@v4
+        with:
+          name: target-static-hints
+          path: target-static-hints
+          if-no-files-found: error
+          retention-days: 7
