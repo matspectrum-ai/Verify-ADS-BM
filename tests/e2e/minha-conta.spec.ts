@@ -29,7 +29,7 @@ test.describe("observed account surface", () => {
     await expect(dialog.getByText("Professional · R$ 150,00/mês")).toBeVisible();
     await expect(dialog.getByText("Gerando dados do Pix...")).toBeVisible();
 
-    await dialog.getByRole("button", { name: "Fechar" }).click();
+    await dialog.getByRole("button", { name: "Fechar", exact: true }).click();
     await expect(page.getByRole("dialog")).toHaveCount(0);
   });
 
