@@ -12,6 +12,17 @@ test.describe("authenticated dashboard surface", () => {
     await expect(page.getByText("Novos este Mês")).toBeVisible();
     await expect(page.getByRole("heading", { name: /Minhas Empresas Ativas/ })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Nenhuma empresa salva" })).toBeVisible();
-    await expect(page.getByRole("button", { name: /Ir para Mineração/ })).toBeVisible();
+    await expect(page.getByRole("link", { name: /Ir para Mineração/ })).toHaveAttribute("href", "/minerar");
+  });
+
+  test("account menu exposes the observed destinations", async ({ page }) => {
+    await page.goto("/minha-area");
+    await page.getByRole("button", { expanded: false }).click();
+
+    await expect(page.getByRole("menuitem", { name: /Minerar CNPJs/ })).toHaveAttribute("href", "/minerar");
+    await expect(page.getByRole("menuitem", { name: /Minha Área/ })).toHaveAttribute("href", "/minha-area");
+    await expect(page.getByRole("menuitem", { name: /Minha Conta/ })).toHaveAttribute("href", "/minha-conta");
+    await expect(page.getByRole("menuitem", { name: /Manual \/ Ajuda/ })).toHaveAttribute("href", "/dashboard/docs");
+    await expect(page.getByRole("menuitem", { name: /Sair/ })).toBeVisible();
   });
 });
