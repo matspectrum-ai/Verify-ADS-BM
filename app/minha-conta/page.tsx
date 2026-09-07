@@ -57,6 +57,7 @@ function SectionTitle({ icon, title, subtitle }: { icon: string; title: string; 
 
 export default function MinhaContaPage() {
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [passwordConfirm, setPasswordConfirm] = useState("");
@@ -80,11 +81,19 @@ export default function MinhaContaPage() {
       <section className="account-shell">
         <header className="account-header">
           <div>
-            <span>PAINEL DE CONTROLE</span>
+            <span className="account-eyebrow">PAINEL DE CONTROLE</span>
             <h1>Minha Conta</h1>
             <p>Gerencie seu plano e configurações de acesso</p>
           </div>
-          <a className="account-back" href="/minha-area">← Minha Área</a>
+          <div className="account-user">
+            <div className="account-greeting"><strong>Olá, usuário</strong><span>conta autenticada</span></div>
+            <div className="account-profile-wrap">
+              <button className="account-profile-button" type="button" aria-expanded={menuOpen} onClick={() => setMenuOpen((value) => !value)}>
+                <span className="account-avatar">N</span><span>usuário</span><span className="account-menu-mark">{menuOpen ? "×" : "☰"}</span>
+              </button>
+              {menuOpen ? <AccountProfileMenu /> : null}
+            </div>
+          </div>
         </header>
 
         <section className="account-card">
@@ -134,6 +143,27 @@ export default function MinhaContaPage() {
       </section>
       {selectedPlan ? <PixModal plan={selectedPlan} onClose={() => setSelectedPlan(null)} /> : null}
     </main>
+  );
+}
+
+function AccountProfileMenu() {
+  async function logout() {
+    localStorage.clear();
+    sessionStorage.clear();
+    try { await fetch("/api/auth/logout", { method: "POST" }); } catch { /* redirect regardless */ }
+    window.location.href = "/login";
+  }
+
+  return (
+    <div className="account-profile-menu" role="menu">
+      <div className="account-profile-menu-head"><strong>usuário</strong><span>conta autenticada</span></div>
+      <a href="/minerar" role="menuitem">⛏ <span>Minerar CNPJs</span></a>
+      <a href="/minha-area" role="menuitem">▦ <span>Minha Área</span></a>
+      <a href="/minha-conta" role="menuitem">◯ <span>Minha Conta</span></a>
+      <a href="/dashboard/docs" role="menuitem">▤ <span>Manual / Ajuda</span></a>
+      <div className="account-profile-separator" />
+      <button type="button" role="menuitem" onClick={logout}>↪ <span>Sair</span></button>
+    </div>
   );
 }
 
