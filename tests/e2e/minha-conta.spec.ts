@@ -18,6 +18,17 @@ test.describe("observed account surface", () => {
     await expect(page.getByRole("heading", { name: /Alterar Senha/ })).toBeVisible();
   });
 
+  test("exposes the observed authenticated destinations", async ({ page }) => {
+    await page.goto("/minha-conta");
+    await page.getByRole("button", { expanded: false }).click();
+
+    await expect(page.getByRole("menuitem", { name: /Minerar CNPJs/ })).toHaveAttribute("href", "/minerar");
+    await expect(page.getByRole("menuitem", { name: /Minha Área/ })).toHaveAttribute("href", "/minha-area");
+    await expect(page.getByRole("menuitem", { name: /Minha Conta/ })).toHaveAttribute("href", "/minha-conta");
+    await expect(page.getByRole("menuitem", { name: /Manual \/ Ajuda/ })).toHaveAttribute("href", "/dashboard/docs");
+    await expect(page.getByRole("menuitem", { name: /Sair/ })).toBeVisible();
+  });
+
   test("opens and closes the observed PIX loading modal", async ({ page }) => {
     await page.goto("/minha-conta");
 
