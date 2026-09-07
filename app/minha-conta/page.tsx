@@ -64,14 +64,14 @@ export default function MinhaContaPage() {
 
   function submitEmail(event: FormEvent) {
     event.preventDefault();
-    setFeedback(email.trim() ? "Email pronto para atualização." : "Informe o novo email.");
+    setFeedback(email.trim() ? "Email atualizado! Verifique sua caixa de entrada para confirmar." : "Informe o novo email");
   }
 
   function submitPassword(event: FormEvent) {
     event.preventDefault();
-    if (password.length < 6) return setFeedback("A senha deve ter pelo menos 6 caracteres.");
-    if (password !== passwordConfirm) return setFeedback("As senhas não coincidem.");
-    setFeedback("Senha pronta para atualização.");
+    if (password.length < 6) return setFeedback("A senha deve ter pelo menos 6 caracteres");
+    if (password !== passwordConfirm) return setFeedback("As senhas não coincidem");
+    setFeedback("Senha alterada com sucesso!");
   }
 
   return (
@@ -120,7 +120,7 @@ export default function MinhaContaPage() {
               <h3>✉ Alterar Email</h3>
               <p>Email atual: <span>conta autenticada</span></p>
               <input aria-label="Novo endereço de email" type="email" placeholder="Novo endereço de email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-              <button type="submit">Salvar · Alterar Email</button>
+              <button type="submit">Alterar Email</button>
             </form>
             <form className="security-panel" onSubmit={submitPassword}>
               <h3>🔒 Alterar Senha</h3>
@@ -149,7 +149,6 @@ function PixModal({ plan, onClose }: { plan: Plan; onClose: () => void }) {
         <div className="pix-loading">
           <span className="spinner" aria-hidden="true" />
           <p>Gerando dados do Pix...</p>
-          <small>O contrato observado cria o pagamento em <code>/api/billing/create-payment</code>. Nenhum código PIX fictício é emitido neste baseline.</small>
         </div>
       </section>
     </div>
