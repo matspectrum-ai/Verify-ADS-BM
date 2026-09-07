@@ -7,13 +7,15 @@ const routes = [
   { id: "home", path: "/" },
   { id: "login", path: "/login" },
   { id: "signup", path: "/cadastro" },
+  { id: "private-area", path: "/minha-area" },
+  { id: "account", path: "/minha-conta" },
 ] as const;
 const viewports = [
   { id: "desktop", width: 1440, height: 1000 },
   { id: "mobile", width: 390, height: 844 },
 ] as const;
 
-test("capture local public routes at target viewports", async ({ page }) => {
+test("capture reconstructed routes at target viewports", async ({ page }) => {
   await mkdir(OUTPUT, { recursive: true });
 
   for (const route of routes) {
