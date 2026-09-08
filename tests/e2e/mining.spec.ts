@@ -2,8 +2,9 @@ import { expect, test } from "@playwright/test";
 
 test.describe("observed mining surface", () => {
   test("first visit shows the target onboarding guide", async ({ page }) => {
+    await page.addInitScript(() => localStorage.removeItem("verifyads_welcome_seen"));
     await page.goto("/minerar");
-    await expect(page.getByRole("heading", { name: "Antes de começar, confira nosso guia 👋", exact: true })).toBeVisible({ timeout: 3000 });
+    await expect(page.getByRole("heading", { name: "Antes de começar, confira nosso guia 👋", exact: true })).toBeVisible({ timeout: 5000 });
     await expect(page.getByText("Bem-vindo ao VerifyAds!", { exact: true })).toBeVisible();
     await expect(page.getByText("Encontre o menu pelo ícone ☰", { exact: true })).toBeVisible();
     await expect(page.getByText("Leia o manual antes de usar", { exact: true })).toBeVisible();

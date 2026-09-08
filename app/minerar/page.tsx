@@ -4,31 +4,15 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { AmbientBackground } from "../components/ambient-background";
 import styles from "./minerar.module.css";
+import { CNPJ_WORDLIST_2025 } from "./cnpj-wordlist";
 
 const WELCOME_KEY = "verifyads_welcome_seen";
 
 type Progress = { tried: number; found: number; target: number; percentage: number };
-type Company = { cnpj: string; razao_social?: string; nome_fantasia?: string; situacao_cadastral?: number | string; capital_social?: number; municipio?: string; uf?: string; porte?: string; cnae_fiscal?: number | string; cnae_fiscal_descricao?: string; ativa?: boolean };
+type Company = { cnpj: string; trust_score?: number; razao_social?: string; nome_fantasia?: string; situacao_cadastral?: number | string; capital_social?: number; municipio?: string; uf?: string; porte?: string; cnae_fiscal?: number | string; cnae_fiscal_descricao?: string; ativa?: boolean };
 
-const CNPJ_SEEDS = [
-  "00000000000191", "33000167000101", "33683111000107", "60746948000112",
-  "02558157000162", "07526557000100", "02877193000155", "07657490000106",
-  "33592510000154", "02558157000162", "61147743000171", "09288193000190"
-];
-
-function onlyDigits(value: string) { return value.replace(/\D/g, ""); }
-
-function completeCnpj(root: string) {
-  const base = root.slice(0, 12);
-  if (base.length !== 12) return null;
-  const digit = (source: string) => {
-    const weights = source.length === 12 ? [5,4,3,2,9,8,7,6,5,4,3,2] : [6,5,4,3,2,9,8,7,6,5,4,3,2];
-    const sum = source.split("").reduce((acc,n,i) => acc + Number(n) * weights[i], 0);
-    const rest = sum % 11; return rest < 2 ? 0 : 11 - rest;
-  };
-  const d1 = digit(base); const d2 = digit(base + d1);
-  return base + d1 + d2;
-}
+const MAX_LIVE_LOOKUPS = 8;
+const LOOKUP_DELAY_MS = 1500;
 
 function SvgIcon({ kind }: { kind: "menu" | "book" | "arrow" | "sparkles" | "zap" }) {
   const p = { viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 2, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
@@ -91,7 +75,6 @@ export default function MinerarPage() {
   const [mining, setMining] = useState(false);
   const [progress, setProgress] = useState<Progress>({ tried: 0, found: 0, target: 20, percentage: 0 });
   const [companies, setCompanies] = useState<Company[]>([]);
-  const timer = useRef<ReturnType<typeof setInterval> | null>(null);
   const stopRequested = useRef(false);
 
   useEffect(() => {
@@ -101,10 +84,8 @@ export default function MinerarPage() {
     }
   }, []);
 
-  useEffect(() => () => { if (timer.current) clearInterval(timer.current); }, []);
-
   const dismissWelcome = () => { localStorage.setItem(WELCOME_KEY, "1"); setWelcome(false); };
-  const stopMining = () => { stopRequested.current = true; if (timer.current) clearInterval(timer.current); timer.current = null; setMining(false); };
+  const stopMining = () => { stopRequested.current = true; setMining(false); };
   const startMining = async () => {
     if (mining) return;
     stopRequested.current = false;
@@ -114,26 +95,27 @@ export default function MinerarPage() {
     let tried = 0;
     let found = 0;
     const target = 20;
-    for (const seed of CNPJ_SEEDS) {
-      if (stopRequested.current) break;
-      const cnpj = completeCnpj(onlyDigits(seed));
-      if (!cnpj) continue;
+
+    for (const cnpj of CNPJ_WORDLIST_2025.slice(0, MAX_LIVE_LOOKUPS)) {
+      if (stopRequested.current || found >= target) break;
       tried += 1;
       try {
         const response = await fetch(`/api/cnpj?cnpj=${cnpj}`, { cache: "no-store" });
         if (response.status === 429) break;
         if (response.ok) {
-          const company = await response.json() as Company;
+          const company = await response.json() as Company & { trust_score?: number };
           const capital = Number(company.capital_social ?? 0);
-          if (company.ativa && capital <= 20000) {
+          const trustScore = Number(company.trust_score ?? 0);
+          if (company.ativa && trustScore >= 65 && capital <= 20000) {
             found += 1;
             setCompanies(prev => [...prev, company]);
           }
         }
       } catch { /* individual lookup failure does not abort the run */ }
       setProgress({ tried, found, target, percentage: Math.min(100, Math.round((found / target) * 100)) });
-      await new Promise(resolve => setTimeout(resolve, 450));
-      if (found >= target) break;
+      if (tried < MAX_LIVE_LOOKUPS && !stopRequested.current) {
+        await new Promise(resolve => setTimeout(resolve, LOOKUP_DELAY_MS));
+      }
     }
     setMining(false);
   };
@@ -163,7 +145,7 @@ export default function MinerarPage() {
       {companies.length > 0 && <section className={styles.results}>
         <div className={styles.resultsHead}><div><span>RESULTADOS</span><h2>Empresas encontradas</h2></div><strong>{companies.length} encontrada{companies.length === 1 ? "" : "s"}</strong></div>
         <div className={styles.resultGrid}>{companies.map(company => <article key={company.cnpj} className={styles.resultCard}>
-          <div className={styles.resultTop}><span>ATIVA</span><b>Trust Score</b></div>
+          <div className={styles.resultTop}><span>ATIVA</span><b>Trust Score {company.trust_score ?? "—"}</b></div>
           <h3>{company.nome_fantasia || company.razao_social || "Empresa sem nome"}</h3>
           <p>{company.razao_social || "Razão social não informada"}</p>
           <dl><div><dt>CNPJ</dt><dd>{company.cnpj}</dd></div><div><dt>LOCALIZAÇÃO</dt><dd>{company.municipio || "—"}{company.uf ? ` / ${company.uf}` : ""}</dd></div><div><dt>CAPITAL SOCIAL</dt><dd>R$ {Number(company.capital_social ?? 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</dd></div></dl>

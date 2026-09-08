@@ -11,7 +11,9 @@ test("mineração consulta a API interna e renderiza empresa ativa", async ({ pa
         razao_social: "Empresa Exemplo LTDA",
         nome_fantasia: "Exemplo Ads",
         situacao_cadastral: 2,
+        tipo_situacao_cadastral: "ATIVA",
         ativa: true,
+        trust_score: 75,
         capital_social: 12000,
         municipio: "Santarém",
         uf: "PA"
@@ -23,4 +25,5 @@ test("mineração consulta a API interna e renderiza empresa ativa", async ({ pa
   await expect(page.getByRole("heading", { name: "Empresas encontradas" })).toBeVisible({ timeout: 10000 });
   await expect(page.getByText("Exemplo Ads", { exact: true })).toBeVisible();
   await expect(page.getByText("R$ 12.000,00", { exact: true })).toBeVisible();
+  await expect(page.getByText("Trust Score 75", { exact: true })).toBeVisible();
 });
