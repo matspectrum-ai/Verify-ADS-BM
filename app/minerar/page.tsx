@@ -5,11 +5,14 @@ import { useEffect, useRef, useState } from "react";
 import { AmbientBackground } from "../components/ambient-background";
 import styles from "./minerar.module.css";
 import { CNPJ_WORDLIST_2025 } from "./cnpj-wordlist";
+import { cnpjCache } from "./cnpj-cache";
 
 const WELCOME_KEY = "verifyads_welcome_seen";
 
 type Progress = { tried: number; found: number; target: number; percentage: number };
-type Company = { cnpj: string; trust_score?: number; razao_social?: string; nome_fantasia?: string; situacao_cadastral?: number | string; capital_social?: number; municipio?: string; uf?: string; porte?: string; cnae_fiscal?: number | string; cnae_fiscal_descricao?: string; ativa?: boolean };
+type Company = { cnpj: string; trust_score?: number; razao_social?: string; nome_fantasia?: string; situacao_cadastral?: number | string; tipo_situacao_cadastral?: string; capital_social?: number; municipio?: string; uf?: string; porte?: string; cnae_fiscal?: number | string; cnae_fiscal_descricao?: string; data_abertura?: string; telefone?: string; email?: string; logradouro?: string; numero?: string; bairro?: string; cep?: string; natureza_juridica?: string; ativa?: boolean };
+
+type CachedCompany = Company & { found_at?: string; times_verified?: number };
 
 const MAX_LIVE_LOOKUPS = 8;
 const LOOKUP_DELAY_MS = 1500;
@@ -61,6 +64,43 @@ function WelcomeModal({ onClose }: { onClose: () => void }) {
   </div>;
 }
 
+function formatCnpj(cnpj: string) {
+  const digits = cnpj.replace(/\D/g, "");
+  return digits.length === 14 ? digits.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, "$1.$2.$3/$4-$5") : cnpj;
+}
+
+function formatCurrency(value?: number) {
+  return Number(value ?? 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+}
+
+function scoreLabel(score: number) {
+  if (score >= 90) return "EXCELENTE";
+  if (score >= 80) return "ÓTIMO";
+  if (score >= 70) return "BOM";
+  if (score >= 60) return "REGULAR";
+  return "BAIXO";
+}
+
+function CompanyModal({ company, onClose, onSave }: { company: Company; onClose: () => void; onSave: () => void }) {
+  const score = Number(company.trust_score ?? 0);
+  const address = [company.logradouro, company.numero, company.bairro].filter(Boolean).join(", ");
+  return <div className={styles.modalLayer} role="dialog" aria-modal="true" aria-label="Detalhes da empresa">
+    <button className={styles.backdrop} aria-label="Fechar detalhes" onClick={onClose} />
+    <section className={styles.detailCard}>
+      <div className={styles.detailHeader}><div><span className={styles.detailEyebrow}>EMPRESA ENCONTRADA</span><h2>{company.razao_social || company.nome_fantasia || "Empresa"}</h2><p>CNPJ: {formatCnpj(company.cnpj)}</p></div><button onClick={onClose} className={styles.detailClose} aria-label="Fechar">×</button></div>
+      <div className={styles.scorePanel}><div><strong>{score}</strong><span>Trust Score</span></div><b>{scoreLabel(score)}</b></div>
+      <dl className={styles.detailGrid}>
+        <div><dt>Nome Fantasia</dt><dd>{company.nome_fantasia || "N/A"}</dd></div><div><dt>Situação</dt><dd>{company.tipo_situacao_cadastral || (company.ativa ? "ATIVA" : "N/A")}</dd></div>
+        <div><dt>Capital Social</dt><dd>{formatCurrency(company.capital_social)}</dd></div><div><dt>Porte</dt><dd>{company.porte || "N/A"}</dd></div>
+        <div><dt>Localização</dt><dd>{[company.municipio, company.uf].filter(Boolean).join(" - ") || "N/A"}</dd></div><div><dt>CNAE</dt><dd>{company.cnae_fiscal ? `${company.cnae_fiscal}${company.cnae_fiscal_descricao ? ` — ${company.cnae_fiscal_descricao}` : ""}` : "N/A"}</dd></div>
+        <div><dt>Data de abertura</dt><dd>{company.data_abertura || "N/A"}</dd></div><div><dt>Telefone</dt><dd>{company.telefone || "N/A"}</dd></div>
+        <div><dt>Email</dt><dd>{company.email || "N/A"}</dd></div><div><dt>Endereço</dt><dd>{address || "N/A"}</dd></div>
+      </dl>
+      <div className={styles.detailActions}><button onClick={onSave}>Salvar empresa</button><button onClick={onClose}>Fechar</button></div>
+    </section>
+  </div>;
+}
+
 function MiningProgress({ progress, onStop }: { progress: Progress; onStop: () => void }) {
   return <section className={styles.progressCard}>
     <div className={styles.progressHeader}><div><span className={styles.spinner} /> <strong>Minerando empresas...</strong></div><button onClick={onStop}>Parar</button></div>
@@ -75,6 +115,8 @@ export default function MinerarPage() {
   const [mining, setMining] = useState(false);
   const [progress, setProgress] = useState<Progress>({ tried: 0, found: 0, target: 20, percentage: 0 });
   const [companies, setCompanies] = useState<Company[]>([]);
+  const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const stopRequested = useRef(false);
 
   useEffect(() => {
@@ -89,33 +131,58 @@ export default function MinerarPage() {
   const startMining = async () => {
     if (mining) return;
     stopRequested.current = false;
+    setError(null);
     setCompanies([]);
     setProgress({ tried: 0, found: 0, target: 20, percentage: 0 });
     setMining(true);
     let tried = 0;
     let found = 0;
     const target = 20;
+    const seen = new Set<string>();
+    const cached = cnpjCache.available().filter(item => Number(item.trust_score ?? 0) >= 65 && Number(item.capital_social ?? 0) <= 20000);
+    const candidates = [...cached.map(item => item.cnpj), ...CNPJ_WORDLIST_2025];
 
-    for (const cnpj of CNPJ_WORDLIST_2025.slice(0, MAX_LIVE_LOOKUPS)) {
+    for (const cnpj of candidates) {
       if (stopRequested.current || found >= target) break;
+      if (seen.has(cnpj) || cnpjCache.isBlacklisted(cnpj) || cnpjCache.isUsed(cnpj)) continue;
+      seen.add(cnpj);
+      const cachedCompany = cached.find(item => item.cnpj === cnpj);
       tried += 1;
+      if (cachedCompany) {
+        found += 1;
+        setCompanies(prev => [...prev, cachedCompany]);
+        setProgress({ tried, found, target, percentage: Math.min(100, Math.round((found / target) * 100)) });
+        continue;
+      }
+      if (tried > MAX_LIVE_LOOKUPS) {
+        setError("Limite de consultas ao provedor atingido. Tente novamente mais tarde.");
+        break;
+      }
       try {
-        const response = await fetch(`/api/cnpj?cnpj=${cnpj}`, { cache: "no-store" });
-        if (response.status === 429) break;
+        const response = await fetch(`/api/cnpj?cnpj=${encodeURIComponent(cnpj)}`, { cache: "no-store" });
+        if (response.status === 429) {
+          setError("A BrasilAPI limitou temporariamente as consultas. A mineração foi pausada.");
+          break;
+        }
         if (response.ok) {
-          const company = await response.json() as Company & { trust_score?: number };
+          const company = await response.json() as Company;
           const capital = Number(company.capital_social ?? 0);
           const trustScore = Number(company.trust_score ?? 0);
           if (company.ativa && trustScore >= 65 && capital <= 20000) {
             found += 1;
+            cnpjCache.addWhitelist(company);
             setCompanies(prev => [...prev, company]);
+          } else {
+            cnpjCache.addBlacklist(cnpj, company.ativa ? "FILTERED" : "INACTIVE");
           }
+        } else if (response.status === 404) {
+          cnpjCache.addBlacklist(cnpj, "NOT_FOUND");
         }
-      } catch { /* individual lookup failure does not abort the run */ }
-      setProgress({ tried, found, target, percentage: Math.min(100, Math.round((found / target) * 100)) });
-      if (tried < MAX_LIVE_LOOKUPS && !stopRequested.current) {
-        await new Promise(resolve => setTimeout(resolve, LOOKUP_DELAY_MS));
+      } catch {
+        cnpjCache.addBlacklist(cnpj, "ERROR");
       }
+      setProgress({ tried, found, target, percentage: Math.min(100, Math.round((found / target) * 100)) });
+      if (tried <= MAX_LIVE_LOOKUPS && !stopRequested.current) await new Promise(resolve => setTimeout(resolve, LOOKUP_DELAY_MS));
     }
     setMining(false);
   };
@@ -136,24 +203,28 @@ export default function MinerarPage() {
 
       {mining && <MiningProgress progress={progress} onStop={stopMining} />}
 
-      {!mining && companies.length === 0 && <section className={styles.emptyState}>
+      {error && <section className={styles.errorState}><span>⚠️</span><p>{error}</p></section>}
+
+      {!mining && companies.length === 0 && !error && <section className={styles.emptyState}>
         <div>🎯</div>
         <p>Configure os filtros e clique em &quot;MINERAR DADOS REAIS&quot;</p>
         <span>O sistema buscará automaticamente empresas que atendem aos critérios</span>
       </section>}
 
       {companies.length > 0 && <section className={styles.results}>
-        <div className={styles.resultsHead}><div><span>RESULTADOS</span><h2>Empresas encontradas</h2></div><strong>{companies.length} encontrada{companies.length === 1 ? "" : "s"}</strong></div>
-        <div className={styles.resultGrid}>{companies.map(company => <article key={company.cnpj} className={styles.resultCard}>
-          <div className={styles.resultTop}><span>ATIVA</span><b>Trust Score {company.trust_score ?? "—"}</b></div>
-          <h3>{company.nome_fantasia || company.razao_social || "Empresa sem nome"}</h3>
-          <p>{company.razao_social || "Razão social não informada"}</p>
-          <dl><div><dt>CNPJ</dt><dd>{company.cnpj}</dd></div><div><dt>LOCALIZAÇÃO</dt><dd>{company.municipio || "—"}{company.uf ? ` / ${company.uf}` : ""}</dd></div><div><dt>CAPITAL SOCIAL</dt><dd>R$ {Number(company.capital_social ?? 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</dd></div></dl>
+        <div className={styles.resultsHead}><div><span>RESULTADOS</span><h2>Empresas Encontradas</h2></div><strong>{companies.length}</strong></div>
+        <div className={styles.resultGrid}>{companies.map(company => <article key={company.cnpj} className={styles.resultCard} onClick={() => setSelectedCompany(company)}>
+          <div className={styles.resultTop}><span>ATIVA</span><b>{company.trust_score ?? "—"} · Trust Score</b></div>
+          <div className={styles.resultIdentity}><div><h3>{company.razao_social || company.nome_fantasia || "Empresa sem nome"}</h3><p>CNPJ: {formatCnpj(company.cnpj)}</p></div><strong>{company.trust_score ?? "—"}</strong></div>
+          <div className={styles.scoreLabel}>{scoreLabel(Number(company.trust_score ?? 0))}</div>
+          <dl><div><dt>Capital Social</dt><dd>{formatCurrency(company.capital_social)}</dd></div><div><dt>Localização</dt><dd>{company.municipio || "N/A"} - {company.uf || "N/A"}</dd></div><div><dt>Porte</dt><dd>{company.porte || "N/A"}</dd></div><div><dt>CNAE</dt><dd>{company.cnae_fiscal || "N/A"}</dd></div></dl>
+          <div className={styles.resultHint}>Clique para ver detalhes e salvar</div>
         </article>)}</div>
       </section>}
 
       <footer className={styles.footer}>© 2026 Score Scanner. Dados fornecidos pela <a href="https://brasilapi.com.br" target="_blank" rel="noreferrer">BrasilAPI</a></footer>
     </div>
     {welcome && <WelcomeModal onClose={dismissWelcome} />}
+    {selectedCompany && <CompanyModal company={selectedCompany} onClose={() => setSelectedCompany(null)} onSave={() => { cnpjCache.markUsed(selectedCompany.cnpj); setSelectedCompany(null); setCompanies(prev => prev.filter(company => company.cnpj !== selectedCompany.cnpj)); }} />}
   </main>;
 }
